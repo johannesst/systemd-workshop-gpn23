@@ -1,0 +1,110 @@
+# /etc/systemd/system/simplehttp.service
+[Unit]
+Description=Simple Http Server
+Documentation=https://docs.python.org/3/library/http.server.html
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m http.server --directory / 8080
+ExecStop=/bin/kill -9 $MAINPID
+
+# https://gist.github.com/ageis/f5595e59b1cddb1513d1b425a323db04 
+# Dienst und seine Kindprozesse dürfen keine neuen Privilegien anfordern
+NoNewPrivileges=yes
+# Dienst kriegt eigenes /tmp und /var/tmp zur Laufzeit, wird nach 
+# stoppen wieder weggeräumt. Nicht sichtbar für andere Prozesse
+PrivateTmp=yes
+# Dienst kriegt eigenes /dev ohne Zugriff auf Hardware (/dev/hda /dev/mem /dev/tty etc), 
+# aber mit Pseudo-TTY, /dev/zero, /dev/random etc
+PrivateDevices=yes
+# Nur Zugriff auf Standardpseudodateien erlaubt, u.A: 
+# /dev/null, /dev/zero, /dev/full, /dev/random, and /dev/urandom.
+DevicePolicy=closed
+# Alternative Optionen:
+# DevicePolicy=strict Nur explizit mit DeviceAllow zugelassene Devices/Device-Gruppen  werden erlaubt
+# DevicePolicy=Auto Standardpolicy, sofern nichts anderes oder DeviceAllow angegeben: Alle erlaubt
+# Sämtliche Verzeichnisse, außer /dev/, /proc/ und /sys/ stehen nur lesend zur Verfügung
+ProtectSystem=strict
+# /home/, /root, and /run/user  stehen nur lesend zur Verfügung
+ProtectHome=read-only
+# Ist der Dienst ein container manager? Nein, dann braucht er auch keinen Schreibzugriff auf sys/fs/cgroup/ 
+ProtectControlGroups=yes
+# Dienste müssen normalerweise keine Kernelmodule laden
+ProtectKernelModules=yes
+#Die meisten Dienste brauchen keinen Schreibzugriff auf
+# /proc/sys/, /sys/, /proc/sysrq-trigger, /proc/latency_stats, /proc/acpi, /proc/timer_stats, /proc/fs und /proc/irq 
+# Also: Bitte nur Lesezugriff machen 
+ProtectKernelTunables=yes
+# Netzwerkdienste brauchen im Regelfall nur IPv4, IPv6, Unix-Sockets und envtl. die Kernel-/Userspace-Kommunikation
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+# Muss der Dienst an den Namespaces rumspielen? Meistens nicht
+RestrictNamespaces=yes
+# Die meisten Dienste brauchen kein RealtimeScheduling
+RestrictRealtime=yes
+# Der Dienst darf nie das set-user-ID (SUID) odeder set-group-ID (SGID) setzen
+RestrictSUIDSGID=yes
+# Verbietet Speicherbereiche als gleichzeitig beschreib- und ausführbar zu markieren
+# Achtung: OpenJDK (und vermutlich andere ähnliche Dinger) 
+# kommen damit nicht zurecht
+MemoryDenyWriteExecute=yes
+
+# Verbietet es die Personality zu ändern (was auch immer das ist, aus personality(2) bin ich nicht schlau geworden...
+LockPersonality=yes
+
+# Weitere Einschränkungen von Johannes
+
+
+# Wird von systemd.exec für die meisten Dienste empfohlen
+# Sehe keine Prozesse anderer User in /proc
+# Wird von systemd.exec(5) als Standard empfohlen
+ProtectProc=invisible
+# Dienst kann auf /home/ /root und /run/user gar nicht mehr zugreifen
+ProtectHome=yes
+ReadOnlyPaths=/srv/www
+InaccessiblePaths=/etc/
+#ReadWritePaths=/srv/www
+
+
+# Mappe alle User und Gruppen auf nobody außer root und den Wert hinter User und Group (hier also www-data
+PrivateUsers=yes
+
+# Er hat nichts an der Hardwareuhr, den Hostnamen oder den Kernellogbuffer verloren
+ProtectClock=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+
+#
+# Ein Webserver sollte unter seinen eigenen User laufen
+User=www-data
+Group=www-data
+
+
+CapabilityBoundingSet=~CAP_SYS_ADMIN CAP_SYS_PERFMON CAP_SYS_PTRACE CAP_SYS_BOOT
+#CapabilityBoundingSet=~CAP_SYS_ADMIN 
+#CAP_SYS_PERFMON CAP_SYS_PTRACE CAP_SYS_BOOT
+# Diverses Sysadminzeug (overloaded laut capabilities (7) 
+# Zeug zur Performancemonitoring, aus CAP_SYS_ADMIN ausgelagert
+#CapabilityBoundingSet=~CAP_SYS_PERFMONN
+#Dienst braucht kein stracing
+#CapabilityBoundingSet=~CAP_SYS_PTRACE
+#Und reboots auslösen soll er auch nicht...
+#CapabilityBoundingSet=~CAP_SYS_BOOT
+
+# für die overrides
+#
+# Nur Systemcalls der nativen Architektur erlauben
+SystemCallArchitectures=native
+# Empfehlung von systemd.exec für Systemdienste
+SystemCallFilter=@system-service
+# SystemCalls, die superuser capabilities verwenden, sollte dieser Dienst eh nicht ausführen können
+SystemCallFilter=~@privileged
+SystemCallFilter=~@resources
+
+# Capabilites einschränken
+# https://unix.stackexchange.com/questions/580597/what-is-the-difference-between-ambientcapabilities-and-capabilityboundingset
+# AmbientCapabilities grants capabilities that the process normally wouldn't have started with.
+# CapabilityBoundingSet limits capabilities the process is allowed to obtain. It doesn't grant any.
+
+
+[Install]
+WantedBy=multi-user.target

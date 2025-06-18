@@ -1,0 +1,13 @@
+# /etc/systemd/system/simplehttp.service
+[Unit]
+Description=Simple Http Server
+Documentation=https://docs.python.org/3/library/http.server.html
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m http.server --directory / 8080
+ExecStop=/bin/kill -9 $MAINPID
+
+
+[Install]
+WantedBy=multi-user.target

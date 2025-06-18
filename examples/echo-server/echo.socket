@@ -1,0 +1,12 @@
+# echo.socket
+# "Borrowed" from Paul Brown
+# https://www.linux.com/training-tutorials/end-road-systemds-socket-units/
+[Unit] 
+Description = Echo server 
+
+[Socket] 
+ListenStream = 4444 
+Accept = yes 
+
+[Install] 
+WantedBy = sockets.target

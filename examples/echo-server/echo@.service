@@ -1,0 +1,11 @@
+# echo@.service
+# "Borrowed" from Paul Brown
+# https://www.linux.com/training-tutorials/end-road-systemds-socket-units/
+[Unit] 
+Description=Echo server service 
+
+[Service] 
+ExecStart=/path/to/socketthing.py 
+StandardInput=socket
+# Von J.Starosta ergänzt
+PrivateNetwork=true
