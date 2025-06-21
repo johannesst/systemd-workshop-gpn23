@@ -1,4 +1,7 @@
 # /etc/systemd/system/simplehttp.service
+# Beispiel für einfachen systemd Dienst 
+# GPN Workshop 22. Juni 2025
+
 [Unit]
 Description=Simple Http Server
 Documentation=https://docs.python.org/3/library/http.server.html

@@ -1,11 +1,16 @@
 # /etc/systemd/system/simplehttp.service
+# Beispiel für  systemd Absicherung  GPN Workshop 22. Juni 2025
+# Vorschlag für "sinnvolle Defaults" für die meisten Dienste, darum eine gute 
+# Grundlage vor "Finetuning", basierend auf:
+# https://gist.github.com/ageis/f5595e59b1cddb1513d1b425a323db04 
+#
 [Unit]
 Description=Simple Http Server
 Documentation=https://docs.python.org/3/library/http.server.html
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 -m http.server --directory / 8080
+ExecStart=/usr/bin/python3 -m http.server --directory / 8081
 ExecStop=/bin/kill -9 $MAINPID
 
 # https://gist.github.com/ageis/f5595e59b1cddb1513d1b425a323db04 
@@ -21,21 +26,26 @@ PrivateDevices=yes
 # /dev/null, /dev/zero, /dev/full, /dev/random, and /dev/urandom.
 DevicePolicy=closed
 # Alternative Optionen:
-# DevicePolicy=strict Nur explizit mit DeviceAllow zugelassene Devices/Device-Gruppen  werden erlaubt
-# DevicePolicy=Auto Standardpolicy, sofern nichts anderes oder DeviceAllow angegeben: Alle erlaubt
+# DevicePolicy=strict Nur explizit mit DeviceAllow zugelassene Devices/Device-Gruppen 
+# werden erlaubt
+# DevicePolicy=Auto Standardpolicy, sofern nichts anderes oder DeviceAllow angegeben: 
+# Alle erlaubt
 # Sämtliche Verzeichnisse, außer /dev/, /proc/ und /sys/ stehen nur lesend zur Verfügung
 ProtectSystem=strict
 # /home/, /root, and /run/user  stehen nur lesend zur Verfügung
 ProtectHome=read-only
-# Ist der Dienst ein container manager? Nein, dann braucht er auch keinen Schreibzugriff auf sys/fs/cgroup/ 
+# Ist der Dienst ein container manager? Nein, dann braucht er im Regelfall 
+# auch keinen Schreibzugriff auf sys/fs/cgroup/ 
 ProtectControlGroups=yes
 # Dienste müssen normalerweise keine Kernelmodule laden
 ProtectKernelModules=yes
-#Die meisten Dienste brauchen keinen Schreibzugriff auf
-# /proc/sys/, /sys/, /proc/sysrq-trigger, /proc/latency_stats, /proc/acpi, /proc/timer_stats, /proc/fs und /proc/irq 
+# Die meisten Dienste brauchen keinen Schreibzugriff auf
+# /proc/sys/, /sys/, /proc/sysrq-trigger, /proc/latency_stats, 
+# /proc/acpi, /proc/timer_stats, /proc/fs und /proc/irq 
 # Also: Bitte nur Lesezugriff machen 
 ProtectKernelTunables=yes
-# Netzwerkdienste brauchen im Regelfall nur IPv4, IPv6, Unix-Sockets und envtl. die Kernel-/Userspace-Kommunikation
+# Netzwerkdienste brauchen im Regelfall nur IPv4, IPv6, Unix-Sockets und 
+# envtl. die Kernel-/Userspace-Kommunikation
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
 # Muss der Dienst an den Namespaces rumspielen? Meistens nicht
 RestrictNamespaces=yes
