@@ -69,9 +69,9 @@ LockPersonality=yes
 ProtectProc=invisible
 
 #Zugriff nur auf vom Dienst verwendeten Verzeichnisse einschränken....
-ReadOnlyPaths=/srv/www /etc/www
+ReadOnlyPaths=/srv/www /var/www
 InaccessiblePaths=/etc/
-#ReadWritePaths=/srv/write
+ReadWritePaths=/srv/write
 
 
 # Mappe alle User und Gruppen auf nobody außer root und den Wert hinter User und Group (hier also www-data
